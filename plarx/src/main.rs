@@ -1,16 +1,50 @@
 mod document;
 
+mod markdown_viewer;
+
 use document::{Document, Block};
 
-fn main() {
-    let mut doc = Document::new("Test Document");
-    doc.blocks.push(Block::new_markdown("Hello, World!"));
-    doc.blocks.push(Block::new_drawing(560.0, 420.0));
+use markdown_viewer::view_markdown;
 
-    println!("Before Saving: {:#?}", doc);
-    doc.saveToFile("test_document.json").expect("Failed to save document");
-    println!("Document saved to test_document.json");
+struct PlarxApp{
+    doc: Document,
+}
 
-    let loaded = Document::loadFromFile("test_document.json").expect("Failed to load document");
-    println!("After Loading: {:#?}", loaded);
+impl Default for PlarxApp {
+    fn default() -> Self {
+        let mut doc = Document::new("Untitled Document");
+        doc.blocks.push(Block::new_markdown("# Hello\n**This** *is* ***a test block.***"));
+        doc.blocks.push(Block::new_drawing(560.0, 240.0));
+
+        Self { doc }
+    }
+}
+
+impl eframe::App for PlarxApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.heading(&self.doc.title);
+            ui.separator();
+
+            for block in &self.doc.blocks {
+                match block{
+                    Block::Markdown(text) => view_markdown(ui, text),
+                    _ => {
+                        ui.label("Drawing block (not implemented yet)");
+                    }
+                }
+                ui.add_space(8.0);
+            }
+        });
+    }
+}
+
+fn main() -> eframe::Result<()> {
+    let options = eframe::NativeOptions::default();
+
+    eframe::run_native(
+        "Plarx",
+        options,
+        Box::new(|_cc| Box::new(PlarxApp::default())),
+    )
 }
