@@ -1,15 +1,17 @@
 use pulldown_cmark::{HeadingLevel, Parser, Event, Tag, TagEnd};
 use egui::{RichText, Ui};
 
-
-pub fn view_markdown(ui: &mut Ui, source: &str){
-    let parser = Parser::new(source);
+pub fn view_singular_markdown(ui: &mut Ui, source: &str, lineNum: usize){
 
     let mut bold = false;
     let mut italic = false;
 
+    let resp: Option<InnerResponse> = None
+
     let mut current_headings: Option<HeadingLevel> = None;
     let mut current_runs: Vec<RichText> = Vec::new();
+
+    let parser = Parser::new(source);
 
     for event in parser{
         match event{
@@ -52,11 +54,12 @@ pub fn view_markdown(ui: &mut Ui, source: &str){
                         });
                     }
                     TagEnd::Heading(_) => {
+                        let resp = ui.scope(|ui| {
                         ui.horizontal_wrapped(|ui| {
                             for rt in current_runs.drain(..) {
                                 ui.label(rt);
                             }
-                        });
+                        });})
                         current_headings = None;
                     }
                     _ => {}

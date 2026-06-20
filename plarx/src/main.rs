@@ -1,22 +1,29 @@
 mod document;
 
+mod markdown_block_viewer;
 mod markdown_viewer;
 
-use document::{Document, Block};
+mod drawing_view;
 
-use markdown_viewer::view_markdown;
+use document::{Document, Block, Stroke};
+
+use markdown_block_viewer::view_markdown;
+
+use drawing_view::view_drawing;
 
 struct PlarxApp{
     doc: Document,
+    active_stroke: Option<Stroke>,
+    active_line: Option<usize>,
 }
 
 impl Default for PlarxApp {
     fn default() -> Self {
-        let mut doc = Document::new("Untitled Document");
-        doc.blocks.push(Block::new_markdown("# Hello\n**This** *is* ***a test block.***"));
+        let mut doc: Document = Document::new("Untitled Document");
+        doc.blocks.push(Block::new_markdown("# Hello\n**This** *is* ***a test block.***\nThis should still work in a new line"));
         doc.blocks.push(Block::new_drawing(560.0, 240.0));
 
-        Self { doc }
+        Self { doc, active_stroke: None, active_line: None }
     }
 }
 
@@ -26,11 +33,12 @@ impl eframe::App for PlarxApp {
             ui.heading(&self.doc.title);
             ui.separator();
 
-            for block in &self.doc.blocks {
+            for block in &mut self.doc.blocks {
                 match block{
-                    Block::Markdown(text) => view_markdown(ui, text),
+                    Block::Markdown(text) => view_markdown(ui, text, &mut self.active_line),
+                    Block::Drawing { width, height, strokes } => view_drawing(ui, *width, *height, strokes, &mut self.active_stroke),
                     _ => {
-                        ui.label("Drawing block (not implemented yet)");
+                        ui.label("Block not implemented yet! Sorry for the inconvenience");
                     }
                 }
                 ui.add_space(8.0);

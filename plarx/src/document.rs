@@ -11,8 +11,18 @@ pub struct StrokePoint {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Stroke {
     pub points: Vec<StrokePoint>,
-    pub color: (u8, u8, u8),
+    pub color: (u8, u8, u8, u8),
     pub width: f32,
+}
+
+impl Stroke{
+    pub fn new(color: (u8, u8, u8, u8), width: f32) -> Self{
+        Stroke{
+            points: Vec::new(),
+            color,
+            width
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -32,7 +42,7 @@ pub struct Document {
 }
 
 impl Block {
-    pub fn new_markdown(text: &str) -> Self {
+    pub fn new_markdown(text: &str)-> Self {
         Block::Markdown(text.to_string())
     }
 
